@@ -53,3 +53,7 @@ docs/_build/
 # PyBuilder
 target/
 .ipynb_checkpoints
+
+# idea
+.DS_Store
+.idea
