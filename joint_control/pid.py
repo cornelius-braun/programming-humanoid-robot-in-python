@@ -54,6 +54,22 @@ class PIDController(object):
         '''
         # YOUR CODE HERE
 
+        # determine the latest error
+        error = target - sensor
+        # y = self.y.pop()
+        # prev_error = target - y
+
+        # compute the control signal
+        self.u = self.Kp * (error - self.e1) \
+                 + self.Ki * self.dt * error \
+                 + self.Kd / self.dt * (error - 2*self.e1 + self.e2)
+
+        # update the error terms
+        self.e2 = self.e1
+        self.e1 = error
+
+        # TODO: append new y
+
         return self.u
 
 
