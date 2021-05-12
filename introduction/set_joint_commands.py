@@ -23,7 +23,6 @@ class MyAgent(SparkAgent):
         # YOUR CODE HERE
         action.speed['HeadYaw'] = 0.1
         action.stiffness['LShoulderPitch'] = 0
-        # action.speed['RKneePitch'] = 0.5
 
         return action
 

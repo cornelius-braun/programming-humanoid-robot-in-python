@@ -12,6 +12,7 @@
 # add PYTHONPATH
 import os
 import sys
+
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'software_installation'))
 
 import numpy as np
@@ -23,6 +24,7 @@ class PIDController(object):
     '''a discretized PID controller, it controls an array of servos,
        e.g. input is an array and output is also an array
     '''
+
     def __init__(self, dt, size):
         '''
         @param dt: step time
@@ -35,9 +37,9 @@ class PIDController(object):
         self.e2 = np.zeros(size)
         # ADJUST PARAMETERS BELOW
         delay = 0
-        self.Kp = 0
-        self.Ki = 0
-        self.Kd = 0
+        self.Kp = 34
+        self.Ki = .8
+        self.Kd = .2
         self.y = deque(np.zeros(size), maxlen=delay + 1)
 
     def set_delay(self, delay):
@@ -54,21 +56,23 @@ class PIDController(object):
         '''
         # YOUR CODE HERE
 
-        # determine the latest error
+        # determine the latest error and delay
         error = target - sensor
-        # y = self.y.pop()
-        # prev_error = target - y
 
         # compute the control signal
-        self.u = self.Kp * (error - self.e1) \
+        # += or = ??
+        self.u += self.Kp * (error - self.e1) \
                  + self.Ki * self.dt * error \
-                 + self.Kd / self.dt * (error - 2*self.e1 + self.e2)
+                 + (self.Kd / self.dt) * (error - 2 * self.e1 + self.e2)
 
-        # update the error terms
         self.e2 = self.e1
         self.e1 = error
 
-        # TODO: append new y
+        # predict new y - is this correct??
+        # predicted = self.u + ((self.u - sensor) + (y - sensor)) / (2*self.dt)*self.dt
+        # y = self.y.pop()
+        # predicted = self.u + ((self.u + y - 2 * sensor) / self.dt)
+        # self.y.append(predicted)
 
         return self.u
 
@@ -91,9 +95,9 @@ class PIDAgent(SparkAgent):
         perception.joint:   current joints' positions (dict: joint_id -> position (current))
         self.target_joints: target positions (dict: joint_id -> position (target)) '''
         joint_angles = np.asarray(
-            [perception.joint[joint_id]  for joint_id in JOINT_CMD_NAMES])
-        target_angles = np.asarray([self.target_joints.get(joint_id, 
-            perception.joint[joint_id]) for joint_id in JOINT_CMD_NAMES])
+            [perception.joint[joint_id] for joint_id in JOINT_CMD_NAMES])
+        target_angles = np.asarray([self.target_joints.get(joint_id,
+                                                           perception.joint[joint_id]) for joint_id in JOINT_CMD_NAMES])
         u = self.joint_controller.control(target_angles, joint_angles)
         action.speed = dict(zip(JOINT_CMD_NAMES.keys(), u))  # dict: joint_id -> speed
         return action
