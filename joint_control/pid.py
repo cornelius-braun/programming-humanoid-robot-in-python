@@ -37,8 +37,8 @@ class PIDController(object):
         self.e2 = np.zeros(size)
         # ADJUST PARAMETERS BELOW
         delay = 0
-        self.Kp = 34
-        self.Ki = .8
+        self.Kp = 79
+        self.Ki = .6
         self.Kd = .2
         self.y = deque(np.zeros(size), maxlen=delay + 1)
 
@@ -57,22 +57,22 @@ class PIDController(object):
         # YOUR CODE HERE
 
         # determine the latest error and delay
-        error = target - sensor
+        # y_old = self.y.popleft()
+        # error = target - sensor
+        y_old = self.y[-1] + sensor - self.y[0]
+        error = target - y_old
 
         # compute the control signal
-        # += or = ??
-        self.u += self.Kp * (error - self.e1) \
-                 + self.Ki * self.dt * error \
-                 + (self.Kd / self.dt) * (error - 2 * self.e1 + self.e2)
+        self.u += self.Kp * (error - self.e1) + self.Ki * self.dt * error + (self.Kd / self.dt) * (error - 2 * self.e1 + self.e2)
+        # self.u += (self.Kp+self.Ki*self.dt+self.Kd/self.dt)*error - (self.Kp+(2*self.Kd)/self.dt)*self.e1 + (self.Kd/self.dt)*self.e2
 
         self.e2 = self.e1
         self.e1 = error
 
         # predict new y - is this correct??
-        # predicted = self.u + ((self.u - sensor) + (y - sensor)) / (2*self.dt)*self.dt
-        # y = self.y.pop()
-        # predicted = self.u + ((self.u + y - 2 * sensor) / self.dt)
-        # self.y.append(predicted)
+        # pred = ((self.u + y_old - 2 * sensor) / self.dt)
+        pred = sensor + self.u * self.dt
+        self.y.append(pred)
 
         return self.u
 

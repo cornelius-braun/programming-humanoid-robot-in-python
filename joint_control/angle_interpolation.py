@@ -43,57 +43,69 @@ class AngleInterpolationAgent(PIDAgent):
         # YOUR CODE HERE
 
         if self.start_time < 0:
-            self.start_time = self.perception.time
+            self.start_time = perception.time
 
         elapsed_time = perception.time - self.start_time    # why interval here?
-        n_skipped = 0
 
         # this returns the first value of frame as natural condition of interpolation
-        if elapsed_time <= 0:
-            target_joints = dict(zip(keyframes[0], [frame[0][0] for frame in keyframes[2]]))
-            return target_joints
+        # if elapsed_time <= 0:
+        #     target_joints = dict(zip(keyframes[0], [frame[0][0] for frame in keyframes[2]]))
+        #     return target_joints
 
         for joint_name, joint_times, joint_keys in zip(*keyframes):
 
             # find first keyframe after current time
 
             # either the frame we look for is before the window
-            if elapsed_time < joint_times[0]:
-                next_keyframe = joint_keys[0]
-                # last keyframe = pseudo keyframe for nothing happened
-                pre_keyframe = [perception.joint[joint_name], [3, 0, 0], [3, 0, 0]]
-                pre_time = 0
-                next_time = joint_times[0]
+            # if elapsed_time < joint_times[0]:
+            #     next_keyframe = joint_keys[0]
+            #     # last keyframe = pseudo keyframe for nothing happened
+            #     pre_keyframe = [perception.joint[joint_name], [3, 0, 0], [3, 0, 0]]
+            #     pre_time = 0
+            #     next_time = joint_times[0]
 
             # or were at the end
-            elif elapsed_time >= joint_times[- 1]:
-                pre_keyframe = next_keyframe = joint_keys[-1]
-                pre_time = next_time = joint_times[-1]
+            # elif elapsed_time >= joint_times[- 1]:
+            #     pre_keyframe = next_keyframe = joint_keys[-1]
+            #     pre_time = next_time = joint_times[-1]
 
                 # mark keyframes as done
                 # self.keyframe_done = True
 
             # base case: we are in the middle
-            else:
-                joint_times_np = np.asarray(joint_times)
-                idx = (np.abs(joint_times_np - elapsed_time)).argmin()
-                pre_keyframe = joint_keys[idx - 1]
-                next_keyframe = joint_keys[idx]
-                pre_time = joint_times[idx - 1]
-                next_time = joint_times[idx]
+            # else:
+            #     joint_times_np = np.asarray(joint_times)
+            #     idx = (np.abs(joint_times_np - elapsed_time)).argmin()
+            #     pre_keyframe = joint_keys[idx - 1]
+            #     next_keyframe = joint_keys[idx]
+            #     pre_time = joint_times[idx - 1]
+            #    next_time = joint_times[idx]
 
             # create the time-angle-pairs
-            p0 = (pre_time, pre_keyframe[0])
-            p1 = (pre_time + pre_keyframe[2][1], pre_keyframe[0] + pre_keyframe[2][2])
-            p2 = (next_time + next_keyframe[1][1], next_keyframe[0] + next_keyframe[1][2])
-            p3 = (next_time, next_keyframe[0])
+            # p0 = (pre_time, pre_keyframe[0])
+            # p1 = (pre_time + pre_keyframe[2][1], pre_keyframe[0] + pre_keyframe[2][2])
+            # p2 = (next_time + next_keyframe[1][1], next_keyframe[0] + next_keyframe[1][2])
+            # p3 = (next_time, next_keyframe[0])
 
             # get the time
-            i = 1 if pre_time == next_time else (elapsed_time-pre_time) / (next_time-pre_time)
-            t = self.getcubic(p0, p1, p2, p3, elapsed_time)
+            # i = 1 if pre_time == next_time else (elapsed_time-pre_time) / (next_time-pre_time)
+            # t = self.getcubic(p0, p1, p2, p3, elapsed_time)
 
             # add joint after evaluation
-            target_joints[joint_name] = self.bezier(p0[1], p1[1], p2[1], p3[1], t)
+            # target_joints[joint_name] = self.bezier(p0[1], p1[1], p2[1], p3[1], t)
+
+            for t in range(len(joint_times)):
+                if joint_times[t] < elapsed_time < joint_times[t+1]:
+                    frame1 = joint_keys[t][0]
+                    frame1_grad = joint_keys[t][1]
+                    frame2 = joint_keys[t+1][0]
+                    # frame1
+                    frame_len = (elapsed_time - joint_times[t]) / (joint_times[t+1]-joint_times[t])
+
+            #angle = self.bezier(p0,p1,p2,p3)
+
+            #if (joint_name == "LHipYawPitch"):
+            #    target_joints["RHipYawPitch"] = angle
 
         return target_joints
 
