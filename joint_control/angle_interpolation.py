@@ -21,7 +21,7 @@
 import numpy as np
 from scipy.interpolate import CubicSpline
 
-from joint_control.keyframes import leftBackToStand, rightBackToStand
+from joint_control.keyframes import leftBackToStand, rightBackToStand, leftBellyToStand
 from pid import PIDAgent
 from keyframes import hello
 
@@ -35,7 +35,6 @@ class AngleInterpolationAgent(PIDAgent):
         super(AngleInterpolationAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.keyframes = ([], [], [])
         self.start_time = -1
-        self.done = False
 
     def think(self, perception):
         target_joints = self.angle_interpolation(self.keyframes, perception)
@@ -45,42 +44,52 @@ class AngleInterpolationAgent(PIDAgent):
     def angle_interpolation(self, keyframes, perception):
         target_joints = {}
         # YOUR CODE HERE
-        skipped = 0
+
+        # find point in time we need to find the angles of
         if self.start_time < 0:
             self.start_time = perception.time
+        elapsed_time = perception.time - self.start_time
 
-        elapsed_time = perception.time - self.start_time  # why interval here?
-
-        # this returns the first value of frame as natural condition of interpolation
-        if elapsed_time <= 0:
-            target_joints = dict(zip(keyframes[0], [frame[0][0] for frame in keyframes[2]]))
-            return target_joints
-
-        for joint_name, joint_times, joint_keys in zip(*keyframes):
-
+        # iterate all joints - compute the angles for each
+        for i, (joint_name, joint_times, joint_keys) in enumerate(zip(*keyframes)):
+            min_t = max_t = frame_n = 0
             joint_angles = np.asarray(joint_keys).T[0]
-            if joint_times[0] < elapsed_time < joint_times[-1]:
-                cs = CubicSpline(joint_times, joint_angles)
-                interpol_angles = cs(elapsed_time)
-                target_joints[joint_name] = interpol_angles
 
-            elif elapsed_time > joint_times[-1]:
-                skipped += 1
-                if skipped == len(keyframes[0]):
-                    self.start_time = -1
-                    self.keyframes = ([],[],[])
+            # if we are at the end, just return the end
+            if elapsed_time > joint_times[-1]:
                 target_joints[joint_name] = joint_angles[-1]
+                if i == len(keyframes[0]) - 1:
+                    self.start_time = -1
+                    self.keyframes = ([], [], [])
+                    print("done!!")
 
-            elif elapsed_time <= joint_times[0]:
+            # if we are at the start, just use the first keyframe
+            if elapsed_time <= joint_times[0]:
                 target_joints[joint_name] = joint_angles[0]
 
+            # if we are in the right window then get right time and then use bezier
+            if joint_times[0] < elapsed_time < joint_times[-1]:
+                frame_n = np.argmax(np.array(joint_times) > elapsed_time)
+                max_t = joint_times[frame_n]
+                min_t = joint_times[frame_n-1] if frame_n != 0 else 0
+                time = (elapsed_time - min_t) / (max_t - min_t)
+                target_joints[joint_name] = self.bezier(joint_keys, frame_n, time)
+
+            # compensate for missing RHipYawPitch
             if "LHipYawPitch" in target_joints:
                 target_joints["RHipYawPitch"] = target_joints["LHipYawPitch"]
 
         return target_joints
 
+    def bezier(self, keys, frame_n, t):
+        p0 = keys[frame_n - 1][0]
+        p3 = keys[frame_n][0]
+        p1 = p0 + keys[frame_n - 1][2][2]
+        p2 = p3 + keys[frame_n][1][2]
+        return np.power(1 - t, 3) * p0 + 3 * t * np.power(1 - t, 2) * p1 + 3 * np.power(t, 2) * (
+                    1 - t) * p2 + np.power(t, 3) * p3
 
 if __name__ == '__main__':
     agent = AngleInterpolationAgent()
-    agent.keyframes = rightBackToStand()  # CHANGE DIFFERENT KEYFRAMES
+    agent.keyframes = leftBellyToStand()  # CHANGE DIFFERENT KEYFRAMES
     agent.run()
