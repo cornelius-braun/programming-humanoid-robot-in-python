@@ -19,7 +19,6 @@
     # preceding the point, the second describes the curve following the point.
 '''
 import numpy as np
-from scipy.interpolate import CubicSpline
 
 from joint_control.keyframes import leftBackToStand, rightBackToStand, leftBellyToStand
 from pid import PIDAgent
@@ -82,14 +81,14 @@ class AngleInterpolationAgent(PIDAgent):
         return target_joints
 
     def bezier(self, keys, frame_n, t):
-        p0 = keys[frame_n - 1][0]
+        p0 = keys[frame_n-1][0]
         p3 = keys[frame_n][0]
-        p1 = p0 + keys[frame_n - 1][2][2]
+        p1 = p0 + keys[frame_n-1][2][2]
         p2 = p3 + keys[frame_n][1][2]
         return np.power(1 - t, 3) * p0 + 3 * t * np.power(1 - t, 2) * p1 + 3 * np.power(t, 2) * (
                     1 - t) * p2 + np.power(t, 3) * p3
 
 if __name__ == '__main__':
     agent = AngleInterpolationAgent()
-    agent.keyframes = leftBellyToStand()  # CHANGE DIFFERENT KEYFRAMES
+    agent.keyframes = leftBackToStand()  # CHANGE DIFFERENT KEYFRAMES
     agent.run()

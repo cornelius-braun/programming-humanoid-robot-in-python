@@ -24,8 +24,8 @@ class StandingUpAgent(PostureRecognitionAgent):
             elif posture == "Right":
                 self.keyframes = kf.rightBackToStand()
             elif posture == "Belly":
-                self.keyframes = kf.rightBellyToStand()
-            elif posture in ["Back", "Frog", "Sit"]:
+                self.keyframes = kf.leftBellyToStand()
+            elif posture == "Back":
                 self.keyframes = kf.rightBackToStand()
 
 
