@@ -37,9 +37,9 @@ class PIDController(object):
         self.e2 = np.zeros(size)
         # ADJUST PARAMETERS BELOW
         delay = 0
-        self.Kp = 79
-        self.Ki = .6
-        self.Kd = .2
+        self.Kp = 7
+        self.Ki = .2
+        self.Kd = .4
         self.y = deque(np.zeros(size), maxlen=delay + 1)
 
     def set_delay(self, delay):
@@ -57,10 +57,10 @@ class PIDController(object):
         # YOUR CODE HERE
 
         # determine the latest error and delay
-        # y_old = self.y.popleft()
-        # error = target - sensor
-        y_old = self.y[-1] + sensor - self.y[0]
-        error = target - y_old
+        y_old = self.y.popleft()
+        error = target - sensor
+        # y_old = self.y[-1] + sensor - self.y[0]
+        # error = target - y_old
 
         # compute the control signal
         self.u += self.Kp * (error - self.e1) + self.Ki * self.dt * error + (self.Kd / self.dt) * (error - 2 * self.e1 + self.e2)
@@ -70,8 +70,8 @@ class PIDController(object):
         self.e1 = error
 
         # predict new y - is this correct??
-        # pred = ((self.u + y_old - 2 * sensor) / self.dt)
-        pred = sensor + self.u * self.dt
+        pred = ((self.u + y_old - 2 * sensor) / self.dt)
+        # pred = sensor + self.u * self.dt
         self.y.append(pred)
 
         return self.u
