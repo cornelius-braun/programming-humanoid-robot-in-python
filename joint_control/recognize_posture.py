@@ -9,10 +9,12 @@
 
 '''
 
-
+import numpy as np
+from os import listdir, path
 from angle_interpolation import AngleInterpolationAgent
+from joint_control.keyframes import wipe_forehead
 from keyframes import hello
-
+import pickle
 
 class PostureRecognitionAgent(AngleInterpolationAgent):
     def __init__(self, simspark_ip='localhost',
@@ -22,7 +24,9 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
                  sync_mode=True):
         super(PostureRecognitionAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.posture = 'unknown'
-        self.posture_classifier = None  # LOAD YOUR CLASSIFIER
+        self.posture_classifier = pickle.load(open('robot_pose.pkl', 'rb'))
+        self.features = ['LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch']
+
 
     def think(self, perception):
         self.posture = self.recognize_posture(perception)
@@ -31,10 +35,15 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
     def recognize_posture(self, perception):
         posture = 'unknown'
         # YOUR CODE HERE
-
+        data = []
+        data.extend([perception.joint[x] for x in self.features])
+        data.extend(perception.imu)
+        estimate = self.posture_classifier.predict(np.array(data).reshape(1, -1))
+        posture = listdir('robot_pose_data')[estimate[0]]
+        print(f"{posture}")
         return posture
 
 if __name__ == '__main__':
     agent = PostureRecognitionAgent()
-    agent.keyframes = hello()  # CHANGE DIFFERENT KEYFRAMES
+    agent.keyframes = wipe_forehead()  # CHANGE DIFFERENT KEYFRAMES
     agent.run()
