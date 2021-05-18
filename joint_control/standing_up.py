@@ -8,8 +8,17 @@
 
 from recognize_posture import PostureRecognitionAgent
 import keyframes as kf
+import logging
 
 class StandingUpAgent(PostureRecognitionAgent):
+    def __init__(self, simspark_ip='localhost',
+                 simspark_port=3100,
+                 teamname='DAInamite',
+                 player_id=0,
+                 sync_mode=True):
+        super().__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
+        self.old_posture = "unknown"
+
     def think(self, perception):
         self.standing_up()
         return super(StandingUpAgent, self).think(perception)
@@ -17,7 +26,11 @@ class StandingUpAgent(PostureRecognitionAgent):
     def standing_up(self):
         posture = self.posture
         # YOUR CODE HERE
-        print(f"{posture}")
+        # print(f"{posture}")
+        if self.old_posture != "unknown" and self.old_posture != posture and posture in ["Belly", "Back", "Left", "Right"] :
+            logging.info(f"{self.old_posture} != {posture}!!!")
+            self.start_time = -1
+
         if self.start_time == -1:
             if posture == "Left":
                 self.keyframes = kf.leftBackToStand()
@@ -27,6 +40,8 @@ class StandingUpAgent(PostureRecognitionAgent):
                 self.keyframes = kf.leftBellyToStand()
             elif posture == "Back":
                 self.keyframes = kf.rightBackToStand()
+
+        self.old_posture = posture
 
 
 class TestStandingUpAgent(StandingUpAgent):
@@ -39,7 +54,7 @@ class TestStandingUpAgent(StandingUpAgent):
                  sync_mode=True):
         super(TestStandingUpAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.stiffness_on_off_time = 0
-        self.stiffness_on_cycle = 10  # in seconds
+        self.stiffness_on_cycle = 15  # in seconds
         self.stiffness_off_cycle = 3  # in seconds
 
     def think(self, perception):

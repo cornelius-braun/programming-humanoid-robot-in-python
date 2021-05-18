@@ -40,7 +40,6 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
         data.extend(perception.imu)
         estimate = self.posture_classifier.predict(np.array(data).reshape(1, -1))
         posture = listdir('robot_pose_data')[estimate[0]]
-        print(f"{posture}")
         return posture
 
 if __name__ == '__main__':

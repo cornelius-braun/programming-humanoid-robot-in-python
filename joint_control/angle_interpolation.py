@@ -20,9 +20,9 @@
 '''
 import numpy as np
 
-from joint_control.keyframes import leftBackToStand, rightBackToStand, leftBellyToStand
+from joint_control.keyframes import leftBackToStand, rightBackToStand, leftBellyToStand, hello
 from pid import PIDAgent
-from keyframes import hello
+import logging
 
 
 class AngleInterpolationAgent(PIDAgent):
@@ -44,6 +44,10 @@ class AngleInterpolationAgent(PIDAgent):
         target_joints = {}
         # YOUR CODE HERE
 
+        # if there are no frames to interpolate, then we do nothing
+        if keyframes == ([], [], []):
+            return target_joints
+
         # find point in time we need to find the angles of
         if self.start_time < 0:
             self.start_time = perception.time
@@ -51,7 +55,7 @@ class AngleInterpolationAgent(PIDAgent):
 
         # iterate all joints - compute the angles for each
         for i, (joint_name, joint_times, joint_keys) in enumerate(zip(*keyframes)):
-            min_t = max_t = frame_n = 0
+            # min_t = max_t = frame_n = 0
             joint_angles = np.asarray(joint_keys).T[0]
 
             # if we are at the end, just return the end
@@ -60,7 +64,7 @@ class AngleInterpolationAgent(PIDAgent):
                 if i == len(keyframes[0]) - 1:
                     self.start_time = -1
                     self.keyframes = ([], [], [])
-                    print("done!!")
+                    logging.info("success: interpolation finished")
 
             # if we are at the start, just use the first keyframe
             if elapsed_time <= joint_times[0]:

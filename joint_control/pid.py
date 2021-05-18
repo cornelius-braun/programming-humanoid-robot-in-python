@@ -39,7 +39,7 @@ class PIDController(object):
         delay = 0
         self.Kp = 7
         self.Ki = .2
-        self.Kd = .4
+        self.Kd = .2
         self.y = deque(np.zeros(size), maxlen=delay + 1)
 
     def set_delay(self, delay):
@@ -69,8 +69,10 @@ class PIDController(object):
         self.e2 = self.e1
         self.e1 = error
 
-        # predict new y - is this correct??
-        pred = ((self.u + y_old - 2 * sensor) / self.dt)
+        # predict new y - somehow the latter bits give me overflows
+        tmp = (self.u + y_old - 2 * sensor) / (2 * self.dt)
+        pred = self.u + tmp * self.dt
+        # pred = self.u + ((self.u + y_old - 2 * sensor) / self.dt)
         # pred = sensor + self.u * self.dt
         self.y.append(pred)
 
