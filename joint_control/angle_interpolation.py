@@ -21,7 +21,7 @@
 import numpy as np
 
 from joint_control.keyframes import leftBackToStand, rightBackToStand, leftBellyToStand, hello
-from pid import PIDAgent
+from joint_control.pid import PIDAgent
 import logging
 
 
