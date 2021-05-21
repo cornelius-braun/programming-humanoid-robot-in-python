@@ -87,7 +87,7 @@ class AngleInterpolationAgent(PIDAgent):
     def bezier(self, keys, frame_n, t):
         p0 = keys[frame_n-1][0]
         p3 = keys[frame_n][0]
-        p1 = p0 + keys[frame_n-1][2][2]
+        p1 = p0 + keys[frame_n-1][2][2]         # check with someone on this, according to docs the 2nd handle value is angle and third is time, but if I use the 2nd it does not work very well
         p2 = p3 + keys[frame_n][1][2]
         return np.power(1 - t, 3) * p0 + 3 * t * np.power(1 - t, 2) * p1 + 3 * np.power(t, 2) * (
                     1 - t) * p2 + np.power(t, 3) * p3
