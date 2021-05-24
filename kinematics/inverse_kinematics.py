@@ -10,12 +10,19 @@
 '''
 
 from forward_kinematics import ForwardKinematicsAgent
-# import autograd.numpy as np
-# from autograd import grad
-# import jax.numpy as jax
-# from jax import grad, jit
 from scipy.optimize import fmin
 import numpy as np
+
+from kinematics import forward_kinematics
+
+
+def from_trans(m):
+    """ get x, y, z & angle from transform matrix
+    """
+    t_x = np.arctan2(m[2, 1], m[2, 2])
+    t_y = np.arctan2(-m[2, 0], (m[2, 1] ** 2 + m[2, 2] ** 2) ** .5)
+    t_z = np.arctan2(m[1, 0], m[0, 0])
+    return np.array([m[0, -1], m[1, -1], m[2, -1], t_x, t_y, t_z])
 
 
 class InverseKinematicsAgent(ForwardKinematicsAgent):
@@ -27,19 +34,15 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         :return: list of joint angles
         '''
         # YOUR CODE HERE
-        optimization = fmin(self.error_func, np.zeros(len(self.chains[effector_name])), args=(effector_name, transform))
+        # TODO: what do we start from???
+        init = []
+        for joint in self.chains[effector_name]:
+            init.append(self.perception.joint[joint])
+        #init = np.zeros(len(self.chains[effector_name]))
+        optimization = fmin(self.error_func, init, args=(effector_name, transform))
         joint_angles = dict(zip(self.chains[effector_name], optimization))
 
         return joint_angles
-
-    def fwd_kin_2(self, chain_joints):
-        T = np.eye(4)
-        for joint, angle in chain_joints.items():
-            Tl = self.local_trans(joint, angle)
-            # YOUR CODE HERE
-            T = T @ Tl
-            # self.transforms[joint] = T
-        return T
 
     def set_transforms(self, effector_name, transform):
         '''solve the inverse kinematics and control joints use the results
@@ -53,41 +56,34 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
             for joint_name in self.chains[chain]:
                 self.keyframes[0].append(joint_name)
                 self.keyframes[1].append([2., 6.])
-                print(chain, effector_name)
                 if chain == effector_name:
-                    self.keyframes[2].append([[self.perception.joint[joint_name], [3, -1, 0], [3, 1, 0]],
-                                              [thetas[joint_name], [3, -1, 0], [3, 1, 0]]])
+                    self.keyframes[2].append([[self.perception.joint[joint_name], [3, -.01, 0], [3, .01, 0]],
+                                              [thetas[joint_name], [3, -.01, 0], [3, .01, 0]]])
                 else:
-                    self.keyframes[2].append([[self.perception.joint[joint_name], [3, -1, 0], [3, 1, 0]],
-                                              [self.perception.joint[joint_name], [3, -1, 0], [3, 1, 0]]])
+                    self.keyframes[2].append([[self.perception.joint[joint_name], [3, -.01, 0], [3, .01, 0]],
+                                              [self.perception.joint[joint_name], [3, -.01, 0], [3, .01, 0]]])
 
-    def from_trans(self, m):
-        """ get x, y, z & angle from transform matrix
-        """
-        t = 0
-        if m[0, 0] == 1:
-            t = np.arctan2(m[2, 1], m[1, 1])
-        elif m[1, 1] == 1:
-            t = np.arctan2(m[0, 2], m[0, 0])
-        elif m[2, 2] == 1:
-            t = np.arctan2(m[1, 0], m[0, 0])
-        return np.array([m[0, -1], m[1, -1], m[2, -1], t])
-
-    def error_func(self, angles, limb, transform):
+    def error_func(self, init_angles, limb, transform):
         """ error function that uses squared l2 norm
         """
-        limb_angles = dict(zip(self.chains[limb], list(angles)))
-        limb_trans = self.fwd_kin_2(limb_angles)
-        error = self.from_trans(transform) - self.from_trans(limb_trans)
-        return error @ error
+        # this is a version of forward kinematics
+        limb_trans = np.eye(4)
+        for joint, angle in zip(self.chains_with[limb], list(init_angles)):
+            Tl = self.local_trans(joint, angle)
+            limb_trans = limb_trans @ Tl
+
+        # error is the squared norm of the angle and position difference
+        error = from_trans(transform.T) - from_trans(limb_trans)
+        return np.linalg.norm(error) ** 2
 
 
 if __name__ == '__main__':
     agent = InverseKinematicsAgent()
     # test inverse kinematics
     T = np.eye(4)
-    T[-1, 1] = 0.23
-    T[-1, 2] = 0.26
-    T[-1, 3] = .5
+    #T[-1, 0] = 0.4
+    #T[-1, 1] = 0.05
+    #T[-1, 2] = 0.26
+    print(T)
     agent.set_transforms('LLeg', T)
     agent.run()

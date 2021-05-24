@@ -116,17 +116,16 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
 
         :param joints: {joint_name: joint_angle}
         '''
-        for chain_joints in self.chains.values():
-        # for chain_joints in self.chains_with.values():
+        # for chain_joints in self.chains.values():
+        for chain_joints in self.chains_with.values():
             T = np.eye(4)
             for joint in chain_joints:
-                # angle = joints[joint] if joint not in self.end_effectors else 0
-                angle = joints[joint]
+                angle = joints[joint] if joint not in self.end_effectors else 0
+                # angle = joints[joint]
                 Tl = self.local_trans(joint, angle)
                 # YOUR CODE HERE
                 T = T @ Tl
                 self.transforms[joint] = T.copy()
-
 
 if __name__ == '__main__':
     agent = ForwardKinematicsAgent()
