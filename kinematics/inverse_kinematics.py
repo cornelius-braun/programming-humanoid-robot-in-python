@@ -34,10 +34,11 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         :return: list of joint angles
         '''
         # YOUR CODE HERE
-        # TODO: what do we start from???
         init = []
         for joint in self.chains[effector_name]:
             init.append(self.perception.joint[joint])
+        if "Arm" in effector_name: # add 2 zeros for translations when it is an Arm
+            init.extend((0, 0))
         #init = np.zeros(len(self.chains[effector_name]))
         optimization = fmin(self.error_func, init, args=(effector_name, transform))
         joint_angles = dict(zip(self.chains[effector_name], optimization))
@@ -81,9 +82,9 @@ if __name__ == '__main__':
     agent = InverseKinematicsAgent()
     # test inverse kinematics
     T = np.eye(4)
-    #T[-1, 0] = 0.4
-    #T[-1, 1] = 0.05
-    #T[-1, 2] = 0.26
+    #T[-1, 0] = 0.
+    T[-1, 1] = .05
+    T[-1, 2] = -.26
     print(T)
     agent.set_transforms('LLeg', T)
     agent.run()
