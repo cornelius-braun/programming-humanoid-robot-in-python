@@ -103,11 +103,18 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
                           [0, 0, 1, 0],
                           [0, 0, 0, 1]])
 
+        roll_45 = np.array([[np.cos(np.pi / 4), np.sin(np.pi / 4), 0, 0],
+                          [-np.sin(np.pi / 4), np.cos(np.pi / 4), 0, 0],
+                          [0, 0, 1, 0],
+                          [0, 0, 0, 1]])
+
+        #if 'Hip' in joint_name:
+        #    T = T @ roll_45 @ rot_y
         if 'Roll' in joint_name:
             T = T @ rot_x
-        if 'Pitch' in joint_name:
+        elif 'Pitch' in joint_name:
             T = T @ rot_y
-        if 'Yaw' in joint_name:
+        elif 'Yaw' in joint_name:
             T = T @ rot_z
 
         T[0, -1] = trans[0]
@@ -130,6 +137,7 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
                 Tl = self.local_trans(joint, angle)
                 T = T @ Tl
                 self.transforms[joint] = T.copy()
+        # print(self.transforms)
 
 if __name__ == '__main__':
     agent = ForwardKinematicsAgent()
