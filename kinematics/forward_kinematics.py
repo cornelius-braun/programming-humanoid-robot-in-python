@@ -34,16 +34,16 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
         self.transforms = {n: np.eye(4) for n in self.joint_names}
 
         # chains defines the name of chain and joints of the chain
-        self.chains_with = {'Head': ['HeadYaw', 'HeadPitch'],
-                            # YOUR CODE HERE
-                            'LArm': ['LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 'LWristYaw',
-                                     'LHand'],
-                            'RArm': ['RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 'RWristYaw',
-                                     'RHand'],
-                            'LLeg': ['LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch',
-                                     'LAnkleRoll'],
-                            'RLeg': ['RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll']
-                            }
+        #self.chains_with = {'Head': ['HeadYaw', 'HeadPitch'],
+        #                    # YOUR CODE HERE
+        #                    'LArm': ['LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 'LWristYaw',
+        #                             'LHand'],
+        #                    'RArm': ['RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 'RWristYaw',
+        #                             'RHand'],
+        #                    'LLeg': ['LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch',
+        #                             'LAnkleRoll'],
+        #                    'RLeg': ['RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll']
+        #                    }
 
         self.chains = {'Head': ['HeadYaw', 'HeadPitch'],
                        # YOUR CODE HERE
@@ -104,9 +104,9 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
                           [0, 0, 0, 1]])
 
         roll_45 = np.array([[np.cos(np.pi / 4), np.sin(np.pi / 4), 0, 0],
-                          [-np.sin(np.pi / 4), np.cos(np.pi / 4), 0, 0],
-                          [0, 0, 1, 0],
-                          [0, 0, 0, 1]])
+                            [-np.sin(np.pi / 4), np.cos(np.pi / 4), 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 1]])
 
         #if 'Hip' in joint_name:
         #    T = T @ roll_45 @ rot_y
@@ -128,12 +128,12 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
 
         :param joints: {joint_name: joint_angle}
         '''
-        # for chain_joints in self.chains.values():
-        for chain_joints in self.chains_with.values():
+        # for chain_joints in self.chains_with.values():
+        for chain_joints in self.chains.values():
             T = np.eye(4)
             for joint in chain_joints:
-                # angle = joints[joint]
-                angle = joints[joint] if joint not in self.end_effectors else 0
+                angle = joints[joint]
+                # angle = joints[joint] if joint not in self.end_effectors else 0
                 Tl = self.local_trans(joint, angle)
                 T = T @ Tl
                 self.transforms[joint] = T.copy()

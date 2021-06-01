@@ -69,7 +69,7 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         """
         # this is a version of forward kinematics
         limb_trans = np.eye(4)
-        for joint, angle in zip(self.chains_with[limb], list(init_angles)):
+        for joint, angle in zip(self.chains[limb], list(init_angles)):
             Tl = self.local_trans(joint, angle)
             limb_trans = limb_trans @ Tl
 
