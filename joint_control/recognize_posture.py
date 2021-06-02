@@ -11,7 +11,7 @@
 
 import numpy as np
 from os import listdir, path
-from angle_interpolation import AngleInterpolationAgent
+from joint_control.angle_interpolation import AngleInterpolationAgent
 from joint_control.keyframes import wipe_forehead, hello
 import pickle
 
@@ -25,14 +25,13 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
         self.posture = 'unknown'
         self.posture_classifier = pickle.load(open('robot_pose.pkl', 'rb'))
         self.features = ['LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch']
-
+        self.posture = self.recognize_posture(self.perception)
 
     def think(self, perception):
         self.posture = self.recognize_posture(perception)
         return super(PostureRecognitionAgent, self).think(perception)
 
     def recognize_posture(self, perception):
-        posture = 'unknown'
         # YOUR CODE HERE
         data = []
         data.extend([perception.joint[x] for x in self.features])

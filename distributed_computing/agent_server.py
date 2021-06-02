@@ -65,8 +65,8 @@ class ServerAgent(InverseKinematicsAgent):
         # YOUR CODE HERE
         print("getting posture")
         # TODO: how can I inherit from the PostureRecognitionAgent??
-        # return self.posture
-        return False
+        return self.posture
+        # return False
 
     def execute_keyframes(self, keyframes):
         '''excute keyframes, note this function is blocking call,

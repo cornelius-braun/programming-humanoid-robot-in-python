@@ -20,11 +20,12 @@ import os
 import sys
 import numpy as np
 from joint_control.angle_interpolation import AngleInterpolationAgent
+from joint_control.recognize_posture import PostureRecognitionAgent
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'joint_control'))
 
 
-class ForwardKinematicsAgent(AngleInterpolationAgent):
+class ForwardKinematicsAgent(PostureRecognitionAgent):
     def __init__(self, simspark_ip='localhost',
                  simspark_port=3100,
                  teamname='DAInamite',
